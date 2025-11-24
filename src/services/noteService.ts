@@ -3,9 +3,7 @@ import type { Note, CreateNoteData } from "../types/note";
 
 export interface NotesResponse {
   notes: Note[];
-  page: number;
   totalPages: number;
-  totalResults: number;
 }
 
 const BASE_URL = "https://notehub-public.goit.study/api";
@@ -34,10 +32,11 @@ export const createNote = async (data: CreateNoteData): Promise<Note> => {
   return res.data;
 };
 
-export const deleteNote = async (id: Note["id"]): Promise<void> => {
-  await axios.delete(`${BASE_URL}/notes/${id}`, {
+export const deleteNote = async (id: Note["id"]): Promise<Note> => {
+  const res = await axios.delete<Note>(`${BASE_URL}/notes/${id}`, {
     headers: {
       Authorization: `Bearer ${TOKEN}`,
     },
   });
+  return res.data;
 };

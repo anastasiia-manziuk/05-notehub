@@ -4,13 +4,16 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteService";
+
 import type { CreateNoteData } from "../../types/note";
 
 import css from "./NoteForm.module.css";
 
 interface NoteFormProps {
   onCancel: () => void;
-  onSubmit: (data: CreateNoteData) => void | Promise<void>;
+  //onSubmit: (data: CreateNoteData) => void | Promise<void>;
 }
 
 const INITIAL_VALUES: CreateNoteData = {
@@ -30,20 +33,28 @@ const validationSchema = Yup.object({
     .required("Required"),
 });
 
-export default function NoteForm({ onCancel, onSubmit }: NoteFormProps) {
+export default function NoteForm({ onCancel }: NoteFormProps) {
   const fieldId = useId();
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: (data: CreateNoteData) => createNote(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] as const });
+    },
+  });
 
   const handleSubmit = async (
     values: CreateNoteData,
-    formikHelpers: FormikHelpers<CreateNoteData>
+    helpers: FormikHelpers<CreateNoteData>
   ) => {
     try {
-      await onSubmit(values);
-      formikHelpers.resetForm();
-    } catch (error) {
-      console.error("NoteForm submit error:", error);
+      await mutation.mutateAsync(values);
+      helpers.resetForm();
+      onCancel();
     } finally {
-      formikHelpers.setSubmitting(false);
+      helpers.setSubmitting(false);
     }
   };
 

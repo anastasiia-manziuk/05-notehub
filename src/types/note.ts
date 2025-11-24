@@ -19,5 +19,4 @@ export interface UpdateNoteData {
   title?: string;
   content?: string;
   tag?: Tag;
-  completed: boolean;
 }
